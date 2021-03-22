@@ -31,8 +31,7 @@ export const onRequest = () => {
     Logger.active().info(
       {
         traceId,
-        pidProcess: process.ppid,
-        content: { url: res.url, method: req.method },
+        content: { url: res.url, method: req.method , headers: req.headers },
       },
       "Request"
     );
@@ -50,7 +49,7 @@ export const onResponse = () => {
     const headers = res.getHeaders();
     const traceId = headers[getTraceIdKey({ headers })];
     Logger.active().info(
-      { traceId, content: { status: res.statusCode } },
+      { traceId, content: { status: res.statusCode, headers } },
       "Response"
     );
   };
