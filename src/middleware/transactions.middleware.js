@@ -21,36 +21,44 @@ const setTraceId = (req, traceId) => {
 
 export const onRequest = () => {
   return (req, res, next) => {
+    let inputData = "";
+
+    req.on("data", (chunk) => {
+      inputData += chunk.toString();
+    });
     let traceId = getTraceIdKey(req);
     if (!traceId) {
       traceId = generateTraceId();
       setTraceId(req, traceId);
     }
     Trace.setTrace(traceId);
-    res.setHeader('traceId', traceId);
-    Logger.active().info(
-      {
-        traceId,
-        pidProcess: process.ppid,
-        content: { url: res.url, method: req.method },
-      },
-      "Request"
-    );
-    return (function run(traceId) {
-      res.on("finish", onResponse());
-      const response = next();
-      return response;
-    })(traceId);
+    res.setHeader("traceId", traceId);
+    const end = res.end;
+    res.end = (data) => {
+      res.body = data;
+      end.call(res, data);
+    };
+
+    req.on("end", () => {
+      Logger.active().info(
+        {
+          traceId,
+          content: { body: inputData, url: res.url, method: req.method },
+        },
+        "Request"
+      );
+      res.on("close", onResponse(traceId));
+      next();
+    });
   };
 };
 
-export const onResponse = () => {
+const onResponse = (traceId) => {
   return function () {
     const res = this;
     const headers = res.getHeaders();
-    const traceId = headers[getTraceIdKey({ headers })];
     Logger.active().info(
-      { traceId, content: { status: res.statusCode } },
+      { traceId, content: { body: res.body, status: res.statusCode } },
       "Response"
     );
   };

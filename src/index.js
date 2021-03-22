@@ -14,8 +14,7 @@ const bootstrap = () => {
     app.use('/status', (req, res) => {
         res.writeHead(200);
         Logger.active().info({ traceId: Trace.getTrace() }, 'Check Status')
-        res.write("up, trace: " + Trace.getTrace());
-        res.end();
+        res.end("up, trace: " + Trace.getTrace());
     });
     http.createServer(app).listen(3000, () => {
         Logger.active().info({ port: 3000 }, 'Server Started')
