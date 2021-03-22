@@ -43,7 +43,7 @@ export const onRequest = () => {
   };
 };
 
-export const onResponse = () => {
+const onResponse = () => {
   return function () {
     const res = this;
     const headers = res.getHeaders();
