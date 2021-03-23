@@ -48,8 +48,8 @@ export const onRequest = () => {
         "Request"
       );
       res.on("close", onResponse(traceId));
-      next();
     });
+    return next();
   };
 };
 
